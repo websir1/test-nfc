@@ -10,31 +10,34 @@
 
     <script>
         document.getElementById('scan').addEventListener('click', async () => {
+            console.log("Scan button clicked"); // Confirm the button click is detected
             if ('NDEFReader' in window) {
                 try {
                     const reader = new NDEFReader();
                     await reader.scan();
+                    console.log("Started NFC scan"); // Confirm NFC scanning starts
 
                     reader.onreading = event => {
+                        console.log("NFC tag detected"); // Confirm an NFC tag is detected
                         let rawDataConcat = '';
                         for (const record of event.message.records) {
-                            console.log(`Record type: ${record.recordType}`);
+                            console.log(`Record detected: ${record.recordType}`);
                             // Ensure the record's data is in a format we can work with
                             const rawData = record.data.buffer ? new Uint8Array(record.data.buffer) : new Uint8Array(0);
                             // Convert the raw data bytes to a hexadecimal string
                             const hexString = Array.from(rawData).map(b => b.toString(16).padStart(2, '0')).join(' ');
                             rawDataConcat += hexString + ' ';
+                            console.log(`Hex data for record: ${hexString}`); // Log hex data for debugging
                         }
 
                         // Update the UI with the hexadecimal representation of the data
                         document.getElementById('studentId').textContent = `Hex data: ${rawDataConcat}`;
                     };
-                    console.log("NFC reader is scanning...");
                 } catch (error) {
-                    console.error(`Error: ${error}.`);
+                    console.error(`NFC scanning error: ${error}.`);
                 }
             } else {
-                console.log("Web NFC is not supported.");
+                console.error("Web NFC is not supported.");
                 alert("Web NFC is not supported on this browser/device.");
             }
         });
