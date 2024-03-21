@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>NFC Student ID Reader</title>
+</head>
+<body>
+    <button id="scan">Scan NFC Tag</button>
+    <p id="studentId">Student ID will appear here.</p>
+
+    <script>
+        document.getElementById('scan').addEventListener('click', async () => {
+            if ('NDEFReader' in window) {
+                try {
+                    const reader = new NDEFReader();
+                    await reader.scan();
+                    
+                    reader.onreading = event => {
+                        const decoder = new TextDecoder();
+                        for (const record of event.message.records) {
+                            console.log("Record type:  " + record.recordType);
+                            console.log("MIME type:    " + record.mediaType);
+                            console.log("Record id:    " + record.id);
+                            
+                            const studentId = decoder.decode(record.data);
+                            document.getElementById('studentId').textContent = Student ID: ${studentId};
+                        }
+                    };
+                    console.log("NFC reader is scanning...");
+                } catch (error) {
+                    console.error(Error: ${error}.);
+                }
+            } else {
+                console.log("Web NFC is not supported.");
+                alert("Web NFC is not supported on this browser/device.");
+            }
+        });
+    </script>
+</body>
+</html>
