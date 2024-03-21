@@ -14,16 +14,25 @@
                 try {
                     const reader = new NDEFReader();
                     await reader.scan();
-                    
+
                     reader.onreading = event => {
-                        const decoder = new TextDecoder();
                         for (const record of event.message.records) {
-                            console.log("Record type:  " + record.recordType);
-                            console.log("MIME type:    " + record.mediaType);
-                            console.log("Record id:    " + record.id);
-                            
-                            const studentId = decoder.decode(record.data);
-                            document.getElementById('studentId').textContent = `Student ID: ${studentId}`;
+                            console.log("Record type: " + record.recordType);
+                            console.log("MIME type: " + record.mediaType);
+                            console.log("Record id: " + record.id);
+
+                            let text;
+                            if (record.recordType === "text") {
+                                // Directly decode text records
+                                const decoder = new TextDecoder();
+                                text = decoder.decode(record.data);
+                            } else {
+                                // For other types, handle appropriately or provide feedback
+                                text = "Unsupported record type or needs specific handling.";
+                            }
+
+                            // Update the UI with the text/content from the NFC tag
+                            document.getElementById('studentId').textContent = `Data: ${text}`;
                         }
                     };
                     console.log("NFC reader is scanning...");
