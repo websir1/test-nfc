@@ -6,7 +6,7 @@
 </head>
 <body>
     <button id="scan">Scan NFC Tag</button>
-    <p id="studentId">Data will appear here.</p>
+    <p id="studentId">Hex data will appear here.</p>
 
     <script>
         document.getElementById('scan').addEventListener('click', async () => {
@@ -19,7 +19,9 @@
                         let rawDataConcat = '';
                         for (const record of event.message.records) {
                             console.log(`Record type: ${record.recordType}`);
+                            // Ensure the record's data is in a format we can work with
                             const rawData = record.data.buffer ? new Uint8Array(record.data.buffer) : new Uint8Array(0);
+                            // Convert the raw data bytes to a hexadecimal string
                             const hexString = Array.from(rawData).map(b => b.toString(16).padStart(2, '0')).join(' ');
                             rawDataConcat += hexString + ' ';
                         }
