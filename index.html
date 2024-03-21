@@ -16,10 +16,13 @@
                     await reader.scan();
 
                     reader.onreading = event => {
+                        console.log(`Records: ${event.message.records.length}`);
                         for (const record of event.message.records) {
-                            console.log("Record type: " + record.recordType);
-                            let textContent = "";
+                            console.log(`Record type: ${record.recordType}`);
+                            console.log(`MIME type: ${record.mediaType}`);
+                            console.log(`Record id: ${record.id}`);
 
+                            let textContent = "";
                             switch (record.recordType) {
                                 case "text":
                                     // Directly decode text records
@@ -27,18 +30,22 @@
                                     textContent = textDecoder.decode(record.data);
                                     break;
                                 case "url":
-                                    // URLs are stored as strings, so direct conversion is possible
+                                    // URLs are direct string data
                                     textContent = new TextDecoder().decode(record.data);
                                     break;
                                 case "mime":
                                     if (record.mediaType === "application/json") {
-                                        // Example: Decode JSON content
+                                        // Decode JSON content
                                         const jsonText = new TextDecoder().decode(record.data);
-                                        const jsonObj = JSON.parse(jsonText);
-                                        textContent = JSON.stringify(jsonObj, null, 2); // Formatting JSON for display
+                                        try {
+                                            const jsonObj = JSON.parse(jsonText);
+                                            textContent = `JSON content: ${JSON.stringify(jsonObj, null, 2)}`;
+                                        } catch (e) {
+                                            textContent = "JSON parsing error.";
+                                        }
                                     } else {
-                                        // Handle other MIME types as needed
-                                        textContent = "MIME type data received, specific handling needed.";
+                                        // General MIME type handling or message for unsupported MIME types
+                                        textContent = "Unsupported MIME type or specific handling needed.";
                                     }
                                     break;
                                 default:
