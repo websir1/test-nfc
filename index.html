@@ -23,12 +23,12 @@
                             console.log("Record id:    " + record.id);
                             
                             const studentId = decoder.decode(record.data);
-                            document.getElementById('studentId').textContent = Student ID: ${studentId};
+                            document.getElementById('studentId').textContent = `Student ID: ${studentId}`;
                         }
                     };
                     console.log("NFC reader is scanning...");
                 } catch (error) {
-                    console.error(Error: ${error}.);
+                    console.error(`Error: ${error}.`);
                 }
             } else {
                 console.log("Web NFC is not supported.");
