@@ -2,48 +2,42 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>NFC Student ID Reader</title>
+    <title>NFC Tag Reader</title>
 </head>
 <body>
     <button id="scan">Scan NFC Tag</button>
-    <p id="studentId">Hex data will appear here.</p>
+    <div id="tagContent">Tag data will appear here...</div>
 
-   <script>
-document.getElementById('scan').addEventListener('click', async () => {
-    if ('NDEFReader' in window) {
-        try {
-            const reader = new NDEFReader();
-            await reader.scan();
-            reader.onreading = event => {
-                let rawDataConcat = '';
-                for (const record of event.message.records) {
-                    const rawData = record.data.buffer ? new Uint8Array(record.data.buffer) : new Uint8Array(0);
-                    const hexString = Array.from(rawData).map(b => b.toString(16).padStart(2, '0')).join(' ');
-                    rawDataConcat += hexString + ' ';
+    <script>
+        document.getElementById('scan').addEventListener('click', async () => {
+            if ('NDEFReader' in window) {
+                try {
+                    const ndef = new NDEFReader();
+                    await ndef.scan();
+
+                    console.log("Ready to scan an NFC tag...");
+                    ndef.onreading = event => {
+                        console.log("NDEF message read.");
+                        const messages = event.message.records.map(record => {
+                            switch (record.recordType) {
+                                case "text":
+                                    return `Text: ${new TextDecoder().decode(record.data)}`;
+                                case "url":
+                                    return `URL: ${new TextDecoder().decode(record.data)}`;
+                                default:
+                                    return `Data: ${record.data}`;
+                            }
+                        });
+
+                        document.getElementById('tagContent').innerText = messages.join("\n");
+                    };
+                } catch (error) {
+                    console.error(`Error: ${error}`);
                 }
-
-                const isPotentiallyEncrypted = checkIfEncrypted(rawDataConcat);
-                let message = `Hex data: ${rawDataConcat}`;
-                if (isPotentiallyEncrypted) {
-                    message += ' - Data might be encrypted or not in plain text format.';
-                }
-
-                document.getElementById('studentId').textContent = message;
-            };
-        } catch (error) {
-            console.error(`Error: ${error}.`);
-        }
-    } else {
-        console.log("Web NFC is not supported.");
-        alert("Web NFC is not supported on this browser/device.");
-    }
-});
-
-function checkIfEncrypted(data) {
-    // Rudimentary check for encrypted data. This example assumes encrypted data wouldn't form readable text.
-    // This function needs to be adapted based on the expected data format and encryption detection logic.
-    return data.length > 20; // Example condition, adjust based on your criteria for encrypted data.
-}
-</script>
+            } else {
+                alert("Web NFC is not supported on this browser/device.");
+            }
+        });
+    </script>
 </body>
 </html>
