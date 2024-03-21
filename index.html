@@ -18,21 +18,36 @@
                     reader.onreading = event => {
                         for (const record of event.message.records) {
                             console.log("Record type: " + record.recordType);
-                            console.log("MIME type: " + record.mediaType);
-                            console.log("Record id: " + record.id);
+                            let textContent = "";
 
-                            let text;
-                            if (record.recordType === "text") {
-                                // Directly decode text records
-                                const decoder = new TextDecoder();
-                                text = decoder.decode(record.data);
-                            } else {
-                                // For other types, handle appropriately or provide feedback
-                                text = "Unsupported record type or needs specific handling.";
+                            switch (record.recordType) {
+                                case "text":
+                                    // Directly decode text records
+                                    const textDecoder = new TextDecoder();
+                                    textContent = textDecoder.decode(record.data);
+                                    break;
+                                case "url":
+                                    // URLs are stored as strings, so direct conversion is possible
+                                    textContent = new TextDecoder().decode(record.data);
+                                    break;
+                                case "mime":
+                                    if (record.mediaType === "application/json") {
+                                        // Example: Decode JSON content
+                                        const jsonText = new TextDecoder().decode(record.data);
+                                        const jsonObj = JSON.parse(jsonText);
+                                        textContent = JSON.stringify(jsonObj, null, 2); // Formatting JSON for display
+                                    } else {
+                                        // Handle other MIME types as needed
+                                        textContent = "MIME type data received, specific handling needed.";
+                                    }
+                                    break;
+                                default:
+                                    textContent = "Unsupported record type.";
+                                    break;
                             }
 
                             // Update the UI with the text/content from the NFC tag
-                            document.getElementById('studentId').textContent = `Data: ${text}`;
+                            document.getElementById('studentId').textContent = `Data: ${textContent}`;
                         }
                     };
                     console.log("NFC reader is scanning...");
