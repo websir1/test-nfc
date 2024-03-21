@@ -16,38 +16,16 @@
                     await reader.scan();
 
                     reader.onreading = event => {
-                        let textContent = 'Data found: ';
+                        let rawDataConcat = '';
                         for (const record of event.message.records) {
                             console.log(`Record type: ${record.recordType}`);
-                            console.log(`MIME type: ${record.mediaType}`);
-                            console.log(`Record id: ${record.id}`);
-
-                            switch (record.recordType) {
-                                case "text":
-                                case "url":
-                                    // Directly decode text and URL records
-                                    const textDecoder = new TextDecoder();
-                                    textContent += textDecoder.decode(record.data) + " ";
-                                    break;
-                                default:
-                                    // Attempt a generic decoding for other types
-                                    try {
-                                        const genericDecoder = new TextDecoder();
-                                        let decodedData = genericDecoder.decode(record.data);
-                                        if (decodedData) {
-                                            textContent += decodedData + " ";
-                                        } else {
-                                            textContent += "Unsupported data format; ";
-                                        }
-                                    } catch(e) {
-                                        textContent += "Error decoding data; ";
-                                    }
-                                    break;
-                            }
+                            const rawData = record.data.buffer ? new Uint8Array(record.data.buffer) : new Uint8Array(0);
+                            const hexString = Array.from(rawData).map(b => b.toString(16).padStart(2, '0')).join(' ');
+                            rawDataConcat += hexString + ' ';
                         }
 
-                        // Update the UI with the content from the NFC tag
-                        document.getElementById('studentId').textContent = textContent;
+                        // Update the UI with the hexadecimal representation of the data
+                        document.getElementById('studentId').textContent = `Hex data: ${rawDataConcat}`;
                     };
                     console.log("NFC reader is scanning...");
                 } catch (error) {
