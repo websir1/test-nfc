@@ -6,7 +6,7 @@
 </head>
 <body>
     <button id="scan">Scan NFC Tag</button>
-    <p id="studentId">Student ID will appear here.</p>
+    <p id="studentId">Data will appear here.</p>
 
     <script>
         document.getElementById('scan').addEventListener('click', async () => {
@@ -16,46 +16,38 @@
                     await reader.scan();
 
                     reader.onreading = event => {
-                        console.log(`Records: ${event.message.records.length}`);
+                        let textContent = 'Data found: ';
                         for (const record of event.message.records) {
                             console.log(`Record type: ${record.recordType}`);
                             console.log(`MIME type: ${record.mediaType}`);
                             console.log(`Record id: ${record.id}`);
 
-                            let textContent = "";
                             switch (record.recordType) {
                                 case "text":
-                                    // Directly decode text records
-                                    const textDecoder = new TextDecoder();
-                                    textContent = textDecoder.decode(record.data);
-                                    break;
                                 case "url":
-                                    // URLs are direct string data
-                                    textContent = new TextDecoder().decode(record.data);
-                                    break;
-                                case "mime":
-                                    if (record.mediaType === "application/json") {
-                                        // Decode JSON content
-                                        const jsonText = new TextDecoder().decode(record.data);
-                                        try {
-                                            const jsonObj = JSON.parse(jsonText);
-                                            textContent = `JSON content: ${JSON.stringify(jsonObj, null, 2)}`;
-                                        } catch (e) {
-                                            textContent = "JSON parsing error.";
-                                        }
-                                    } else {
-                                        // General MIME type handling or message for unsupported MIME types
-                                        textContent = "Unsupported MIME type or specific handling needed.";
-                                    }
+                                    // Directly decode text and URL records
+                                    const textDecoder = new TextDecoder();
+                                    textContent += textDecoder.decode(record.data) + " ";
                                     break;
                                 default:
-                                    textContent = "Unsupported record type.";
+                                    // Attempt a generic decoding for other types
+                                    try {
+                                        const genericDecoder = new TextDecoder();
+                                        let decodedData = genericDecoder.decode(record.data);
+                                        if (decodedData) {
+                                            textContent += decodedData + " ";
+                                        } else {
+                                            textContent += "Unsupported data format; ";
+                                        }
+                                    } catch(e) {
+                                        textContent += "Error decoding data; ";
+                                    }
                                     break;
                             }
-
-                            // Update the UI with the text/content from the NFC tag
-                            document.getElementById('studentId').textContent = `Data: ${textContent}`;
                         }
+
+                        // Update the UI with the content from the NFC tag
+                        document.getElementById('studentId').textContent = textContent;
                     };
                     console.log("NFC reader is scanning...");
                 } catch (error) {
