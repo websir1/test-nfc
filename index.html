@@ -2,42 +2,38 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>NFC Tag Reader</title>
+    <title>NFC Reader</title>
 </head>
 <body>
-    <button id="scan">Scan NFC Tag</button>
-    <div id="tagContent">Tag data will appear here...</div>
+<button id="scan">Scan NFC Tag</button>
+<div id="tagContent">Tag data will appear here...</div>
 
-    <script>
-        document.getElementById('scan').addEventListener('click', async () => {
-            if ('NDEFReader' in window) {
-                try {
-                    const ndef = new NDEFReader();
-                    await ndef.scan();
+<script>
+    document.getElementById('scan').addEventListener('click', async () => {
+        if ('NDEFReader' in window) {
+            try {
+                const reader = new NDEFReader();
+                await reader.scan();
 
-                    console.log("Ready to scan an NFC tag...");
-                    ndef.onreading = event => {
-                        console.log("NDEF message read.");
-                        const messages = event.message.records.map(record => {
-                            switch (record.recordType) {
-                                case "text":
-                                    return `Text: ${new TextDecoder().decode(record.data)}`;
-                                case "url":
-                                    return `URL: ${new TextDecoder().decode(record.data)}`;
-                                default:
-                                    return `Data: ${record.data}`;
-                            }
-                        });
+                reader.onreading = (event) => {
+                    const messages = event.message.records.map(record => {
+                        if (record.recordType === "text") {
+                            return `Text: ${new TextDecoder().decode(record.data)}`;
+                        } else {
+                            return `Data: ${record.data ? new TextDecoder().decode(record.data) : 'null'}`;
+                        }
+                    });
+                    document.getElementById('tagContent').textContent = messages.join(", ");
+                };
 
-                        document.getElementById('tagContent').innerText = messages.join("\n");
-                    };
-                } catch (error) {
-                    console.error(`Error: ${error}`);
-                }
-            } else {
-                alert("Web NFC is not supported on this browser/device.");
+                console.log("Scanning for NFC tags...");
+            } catch (error) {
+                console.error(`Error: ${error.message}`);
             }
-        });
-    </script>
+        } else {
+            alert("Web NFC is not supported on this browser/device.");
+        }
+    });
+</script>
 </body>
 </html>
